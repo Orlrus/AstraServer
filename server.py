@@ -1,5 +1,5 @@
 import os
-
+import re
 import httpx
 import psycopg
 from fastapi import FastAPI, HTTPException
@@ -29,7 +29,7 @@ class RouteRequest(BaseModel):
     start_longitude: float
     end_latitude: float
     end_longitude: float
-
+    route_conditions: str = ""
     vehicle_height: float
     vehicle_width: float
     vehicle_length: float
@@ -90,7 +90,12 @@ async def build_route(request: RouteRequest):
             status_code=503,
             detail="ORS API key is not configured",
         )
-
+    conditions = request.route_conditions.lower().strip()
+    country_rules = re.findall(
+    r"(польщ\w*|німеч\w*|франц\w*|австр\w*|італ\w*)\s+"
+    r"(безплат\w*|безкоштов\w*|плат\w*)",
+    conditions,
+)
     avoid_features = []
 
     if request.avoid_tollways:
